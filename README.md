@@ -1,4 +1,4 @@
-regex-crossword
+Regex Crossword
 ===============
 
-Regex Crossword Generator
+Simple Regex Crossword Generator
