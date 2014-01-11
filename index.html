@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Regex Crossword Creator</title>
+		<style type="text/css">
+			html {
+				background-color: #e0e0ff;
+				background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX4+Pj09PQf/c7fAAAAGUlEQVR4XnXIMQ0AAACDMPyb3gxA0qswVX1+vw/xW46qyAAAAABJRU5ErkJggg==');
+				font-family: Nunito,Calibri,'Open Sans',Helvetica,sans-serif;
+				font-size: 14px;
+				color: #000;
+				min-height: 100%;
+			}
+			body {
+				background: rgba(255,255,255,0.8);
+				max-width: 1024px;
+				margin: 15px auto;
+				padding: 15px;
+			}
+			h1,h2,h3,h4,h5,h6,p { margin: 0 0 0.5em; }
+			.modal {
+				position: fixed; top: 50%; left: 50%; margin: -200px;
+				width: 400px; min-height: 100px;
+				display: none; background: #fff;
+				border-radius: 5px;
+				border: 3px #eee solid;
+				z-index: 2;
+			}
+			#cover {
+				position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+				background: rgba(0,0,0,0.3);
+				display: none;
+				z-index: 1;
+			}
+			.modal:target, .modal:target~#cover { display: block }
+
+			form { text-align: center; padding: 10px; }
+			input, label {
+				font-size: 18px;
+				line-height: 25px;
+				padding: 0; margin: 0;
+				text-align: left;
+				text-transform: uppercase;
+			}
+			label { display: block; margin-bottom: 10px; min-height: 28px; }
+			label input { float: right; }
+
+			input[type="number"] { width: 40px; }
+			input[type="submit"] { font-weight: normal; padding: 3px 5px; }
+			input.answer { text-align: center; width: 25px; font-weight: bold; }
+			input.answer:empty { background: #fdd; }
+			.clue input { display: none; }
+
+			table, tr, td { border: none; padding: 0; }
+
+			tr:first-child th { -webkit-transform: rotate(90deg); }
+			th a { color: inherit; text-decoration: none; }
+			th a.invalid { color: red; }
+		</style>
+		<script type="text/javascript">
+			function clue(x,y)
+			{
+				var ret = document.createElement('th');
+				var lnk = document.createElement('a');
+				var inp = document.createElement('input');
+
+				lnk.id   = 'clue-' + x + '-' + y;
+				lnk.name = 'clue[' + x + '][' + y + ']';
+				lnk.onmousedown = setClue;
+
+				lnk.setAttribute('data-type', 'clue');
+				lnk.setAttribute('readonly', 'readonly');
+				inp.setAttribute('value', '.*');
+
+				lnk.classList.add('clue');
+				if (x >= 0)
+				{
+					lnk.setAttribute('data-x', x);
+				}
+				if (y >= 0)
+				{
+					lnk.setAttribute('data-y', y);
+				}
+				ret.appendChild(lnk);
+				lnk.appendChild(document.createTextNode('.*'));
+				lnk.appendChild(inp);
+				return ret;
+			}
+
+			function field(x,y,chars)
+			{
+				var ret = document.createElement('td');
+				var inp = document.createElement('input');
+				var char = chars.length && chars.charAt(Math.round(Math.random() * (chars.length - 0.5))) || '';
+
+				inp.id = 'field-' + x + '-' + y;
+				inp.name = 'field[' + x + '][' + y + ']';
+				inp.classList.add('answer');
+				inp.setAttribute('data-type', 'field');
+				inp.setAttribute('data-x', x);
+				inp.setAttribute('data-y', y);
+				inp.setAttribute('value', char);
+				inp.onchange = validate;
+				ret.appendChild(inp);
+				return ret;
+			}
+
+			function createGrid()
+			{
+				var max_x = document.getElementById('grid-x').value;
+				var max_y = document.getElementById('grid-y').value;
+				var chars = document.getElementById('genset').value;
+				var grid  = document.getElementById('grid');
+				var row;
+
+				while (grid.firstChild)
+				{
+					grid.removeChild(grid.lastChild);
+				}
+
+				row = document.createElement('tr');
+				row.appendChild(document.createElement('td'));
+				for (var x = 0; x < max_x; ++x)
+				{
+					row.appendChild(clue(x, -1));
+					grid.appendChild(row);
+				}
+
+				for (var y = 0; y < max_y; ++y)
+				{
+					row = document.createElement('tr');
+					row.appendChild(clue(-1, y))
+					for (var x = 0; x < max_x; ++x)
+					{
+						row.appendChild(field(x,y,chars));
+					}
+					grid.appendChild(row);
+				}
+
+				window.location.hash = '#';
+			}
+
+			function validate(e)
+			{
+				console.log('validate', e.target);
+
+				if (e.target.getAttribute('data-type') === 'field')
+				{
+					var x = e.target.getAttribute('data-x');
+					var y = e.target.getAttribute('data-y');
+					var i;
+
+					x = document.querySelectorAll('[data-type="clue"][data-x="' + x + '"], [data-type="clue"][data-y="' + y + '"]');
+
+					for (i = 0; i < x.length; ++i)
+					{
+						validate({target : x[i]});
+					}
+				}
+				else if (e.target.getAttribute('data-type') === 'clue')
+				{
+					e.target.classList.add('invalid');
+
+					var x = e.target.getAttribute('data-x');
+					var y = e.target.getAttribute('data-y');
+
+					var s = document.querySelectorAll('[data-type="field"][data-x="' + x + '"], [data-type="field"][data-y="' + y + '"]');
+					var i = 0, txt = '';
+					var regex = e.target.textContent;
+
+					for (i = 0; i < s.length; ++i)
+					{
+						txt += s[i].value;
+					}
+
+					regex = new RegExp('^' + regex + '$', 'i');
+
+					console.log(s, regex, txt);
+					if (regex.test(txt))
+					{
+						e.target.classList.remove('invalid');
+					}
+				}
+			}
+
+			function setClue(e)
+			{
+				document.getElementById('clue-id').value = e.target.id;
+				document.getElementById('regex').value = e.target.querySelector('input').value;
+				window.location.hash = '#clue';
+			}
+
+			function updateClue()
+			{
+				var clue = document.getElementById('clue-id').value;
+				clue = document.getElementById(clue);
+				clue.querySelector('input').value =
+				clue.firstChild.textContent = document.getElementById('regex').value;
+
+				var e = { target: clue };
+				window.location.hash = '#';
+				validate(e);
+			}
+
+			window.location.hash = '#create';
+		</script>
+	</head>
+	<body>
+		<h1>Regex Crossword Construction Helper</h1>
+		<a href="#create">Create Grid</a>
+
+		<form>
+			<table>
+				<tbody id="grid"></tbody>
+			</table>
+		</form>
+
+		<form action="#" id="create" class="modal" onsubmit="createGrid(); return false;">
+			<label for="grid-x" title="Number of columns in the grid">
+				Grid Width:
+				<input type="number" min="1" name="grid-x" id="grid-x" required="required" />
+			</label>
+
+			<label for="grid-y" title="Number of rows in the grid">
+				Height:
+				<input type="number" min="1" name="grid-y" id="grid-y" required="required" />
+			</label>
+
+			<label for="genset" title="Set of letters used to automatically generate a solution in the grid">
+				Letter Set (Optional):
+				<input type="text" name="genset" id="genset" />
+			</label>
+			<input type="submit" value="Generate" />
+		</form>
+
+		<form id="clue" class="modal" onsubmit="updateClue(); return false;">
+			<input type="hidden" id="clue-id" />
+			<label for="regex">
+				Regular Expression
+				<input type="text" name="regex" id="regex" />
+			</label>
+			<input type="submit" value="Update" />
+		</form>
+
+		<a href="#" id="cover"></a>
+	</body>
+</html>
