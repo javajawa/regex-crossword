@@ -59,7 +59,7 @@
 			table, tr, td { border: none; padding: 0; }
 
 			tr:first-child th { -webkit-transform: rotate(90deg); }
-			th a { color: inherit; text-decoration: none; }
+			th a { color: inherit; text-decoration: none; border: 1px #e0e0f1 solid; }
 			th a.invalid { color: red; }
 		</style>
 		<script type="text/javascript">
@@ -147,8 +147,6 @@
 
 			function validate(e)
 			{
-				console.log('validate', e.target);
-
 				if (e.target.getAttribute('data-type') === 'field')
 				{
 					var x = e.target.getAttribute('data-x');
@@ -180,7 +178,6 @@
 
 					regex = new RegExp('^' + regex + '$', 'i');
 
-					console.log(s, regex, txt);
 					if (regex.test(txt))
 					{
 						e.target.classList.remove('invalid');
@@ -248,6 +245,7 @@
 				<input type="text" name="regex" id="regex" />
 			</label>
 			<input type="submit" value="Update" />
+			<a href="#">Cancel</a>
 		</form>
 
 		<a href="#" id="cover"></a>
