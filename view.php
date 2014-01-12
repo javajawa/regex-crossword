@@ -158,7 +158,7 @@ foreach ($crossword as $clue)
 			</table>
 			<input type="button" onclick="validate(); return false;" value="Check" />
 		</form>
-		<a href="index.php">Make your own regex crossword</a>
+		<a href="create.html">Make your own regex crossword</a>
 	</body>
 </html>
 
