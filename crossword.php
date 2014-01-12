@@ -4,8 +4,8 @@ class Crossword implements Iterator
 {
 	protected $width;
 	protected $height;
-	protected $title;
-	protected $setter;
+	public $title;
+	public $setter;
 	protected $clues = array();
 
 	public function __construct($width, $height)
