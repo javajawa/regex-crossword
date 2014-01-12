@@ -66,8 +66,8 @@
 				var inp = document.createElement('input');
 
 				lnk.id   = 'clue-' + x + '-' + y;
-				lnk.name = 'clue[' + x + '][' + y + ']';
 				lnk.onmousedown = setClue;
+				inp.name = 'clue[' + x + '][' + y + ']';
 
 				lnk.setAttribute('data-type', 'clue');
 				lnk.setAttribute('readonly', 'readonly');
@@ -210,10 +210,13 @@
 		<h1>Regex Crossword Construction Helper</h1>
 		<a href="#create">Create Grid</a>
 
-		<form>
+		<form action="create.php" method="POST">
+			<label>Title: <input name="title" placeholder="Crossword Title" /></label>
+			<label>Setter: <input name="setter" placeholder="Setter's Name/Alias/Handle" /></label>
 			<table>
 				<tbody id="grid"></tbody>
 			</table>
+			<input type="submit" value="Create" />
 		</form>
 
 		<form action="#" id="create" class="modal" onsubmit="createGrid(); return false;">
